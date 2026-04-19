@@ -5,7 +5,7 @@ package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,ttf,kv,mp3
 version = 0.1
-requirements = python3,kivy==2.3.0
+requirements = python3,kivy==2.3.0,pillow
 
 orientation = landscape
 fullscreen = 1
