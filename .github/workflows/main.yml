@@ -4,7 +4,6 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-22.04
-    # Forzamos Node 24 para evitar las advertencias de deprecación
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
@@ -14,13 +13,13 @@ jobs:
       - name: Install Buildozer dependencies
         run: |
           sudo apt update
-          # Corregido: libx11-dev en lugar de libx10-dev
+          # Añadido libunwind-dev y limpieza de paquetes conflictivos
           sudo apt install -y python3-pip build-essential git python3 python3-dev ffmpeg \
           libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
           libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-dev \
           gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
           gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstrtspserver-1.0-dev \
-          libx11-dev x11proto-xext-dev libxext-dev liblzma-dev libbz2-dev \
+          libx11-dev libxext-dev liblzma-dev libbz2-dev libunwind-dev \
           libsqlite3-dev tk-dev libgdbm-dev libc6-dev libffi-dev libssl-dev \
           autoconf automake libtool pkg-config
           
@@ -29,7 +28,7 @@ jobs:
       - name: Build with Buildozer
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Este paso tardará unos 15-20 minutos
+          # Este paso es el más largo (15-20 min)
           yes | buildozer -v android debug
 
       - name: Upload APK
@@ -37,8 +36,3 @@ jobs:
         with:
           name: AstroJump-Installer
           path: bin/*.apk
-
-
-
-
-
