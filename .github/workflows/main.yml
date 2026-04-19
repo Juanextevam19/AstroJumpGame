@@ -5,20 +5,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # Versión actualizada
+      - uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        # Corregido el nombre y versión del action
-        uses: ArtemSerebrenninkov/buildozer-action@v1.2.1
+        # Cambiamos a la versión mantenida que funciona siempre
+        uses: ArtemSerebrenninkov/buildozer-action@v1
         with:
           buildozer_version: master
           command: buildozer android debug
 
       - name: Upload APK
-        # Versión v4 requerida por GitHub desde 2024
         uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: AstroJump-APK
           path: bin/*.apk
+
 
 
