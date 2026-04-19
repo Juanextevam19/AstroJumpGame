@@ -13,7 +13,6 @@ jobs:
       - name: Install Buildozer dependencies
         run: |
           sudo apt update
-          # Añadido libunwind-dev y limpieza de paquetes conflictivos
           sudo apt install -y python3-pip build-essential git python3 python3-dev ffmpeg \
           libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
           libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-dev \
@@ -25,10 +24,16 @@ jobs:
           
           pip3 install --user --upgrade buildozer "cython<3.0.0" virtualenv
 
+      # ESTE ES EL PASO NUEVO QUE ARREGLA EL ERROR
+      - name: Install Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Build with Buildozer
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Este paso es el más largo (15-20 min)
           yes | buildozer -v android debug
 
       - name: Upload APK
