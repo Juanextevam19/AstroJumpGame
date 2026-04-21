@@ -107,8 +107,8 @@ ScreenManager:
     Button:
         text: "PAUSA"
         size_hint: (None, None)
-        size: (100, 50)
-        pos_hint: {'top': 1, 'right': 1}
+        size: (dp(120), dp(60))
+        pos_hint: {'top': 0.98, 'right': 0.98}
         on_release:
             juego_id.pausar()
             root.abrir_popup_ajustes()
@@ -130,16 +130,23 @@ ScreenManager:
             size: self.size
 
 <Juego>:
+    # Creamos una referencia para que Python lo encuentre
+    label_cuenta_visual: contador_label
+
     canvas.before:
         Rectangle:
             source: 'assets/fondo_espacio.jpg'
             pos: self.pos
             size: self.size
     Label:
-        font_size: 40
-        center_x: root.width / 2
-        top: root.top - 50
+        id: contador_label
+        text: ""  # Empieza vacío
+        font_name: 'assets/Orbitron-Black.ttf'
+        font_size: dp(30)
+        top: root.top - dp(50) # Y aquí
         text: "Puntaje: " + str(root.puntaje)
+        center: root.center
+        color: (0, 1, 1, 1) # Cian neón
 <Button>:
     font_name: 'assets/Orbitron-Black.ttf'
     background_normal: ''
@@ -159,3 +166,54 @@ ScreenManager:
             pos: self.pos
             size: self.size
             radius: [10,]
+
+<GameOverPopup>:
+    title: ""
+    separator_height: 0
+    size_hint: (0.8, 0.6)
+    background: ''
+    background_color: (0, 0, 0, 0)
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 30
+        spacing: 15
+        canvas.before:
+            Color:
+                rgba: (0.2, 0, 0, 0.85) # Fondo rojo oscuro traslúcido
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [20,]
+            Color:
+                rgba: (1, 0.2, 0.2, 0.8) # Borde rojo neón
+            Line:
+                width: 2
+                rounded_rectangle: (self.x, self.y, self.width, self.height, 20)
+
+        Label:
+            text: "MISIÓN FALLIDA"
+            font_name: 'assets/Orbitron-Black.ttf'
+            font_size: 32
+            color: (1, 0.2, 0.2, 1)
+
+        Label:
+            text: "Puntaje Final: " + str(root.puntaje_final)
+            font_name: 'assets/Orbitron-Black.ttf'
+            font_size: 24
+
+        Button:
+            text: "REINTENTAR"
+            size_hint_y: None
+            height: 60
+            on_release:
+                root.juego.reiniciar_juego()
+                root.dismiss()
+
+        Button:
+            text: "SALIR AL MENÚ"
+            size_hint_y: None
+            height: 60
+            on_release:
+                root.dismiss()
+                root.juego.ir_al_menu()
