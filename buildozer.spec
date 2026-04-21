@@ -5,9 +5,10 @@ package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,ttf,kv,mp3
 version = 0.1
-requirements = python3,kivy==2.3.0,pillow
+requirements = python3, hostpython3, kivy==2.3.0, pillow, sdl2_mixer, sdl2_ttf, android
 
-orientation = landscape
+
+orientation = portrait
 fullscreen = 1
 android.archs = arm64-v8a, armeabi-v7a
 android.allow_backup = True
@@ -19,6 +20,7 @@ android.ndk = 25b
 android.ndk_api = 21
 android.accept_sdk_license = True
 android.skip_update = False
+android.permissions = INTERNET
 
 [buildozer]
 log_level = 2
