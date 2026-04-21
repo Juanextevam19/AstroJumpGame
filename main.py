@@ -42,8 +42,17 @@ class Astronauta(Widget):
 class AjustesPopup(Popup):
     juego = ObjectProperty(None)
 
+# 1. Crea esta nueva clase para el cartel de "Perdiste"
+class GameOverPopup(Popup):
+    juego = ObjectProperty(None)
+    puntaje_final = NumericProperty(0)
+
+    def salir_al_menu_desde_popup(self):
+        self.dismiss() # Cierra el cartel
+        self.juego.ir_al_menu() # Usa la función que ya arreglamos en Juego
 
 class Juego(Widget):
+    label_cuenta_visual = ObjectProperty(None)  # Conecta con el ID del KV
     astronauta = ObjectProperty(None)
     puntaje = NumericProperty(0)
     velocidad_juego = NumericProperty(-3)
@@ -55,12 +64,43 @@ class Juego(Widget):
         self.ejecutando = False
 
     def comenzar(self):
-        if not self.ejecutando:
-            # Ponemos la nave en una posición visible (X=50, Y=mitad de pantalla)
-            self.astronauta.pos = (dp(50), self.height / 2)
-            self.evento_meteoritos = Clock.schedule_interval(self.crear_meteorito, 1.5)
-            self.evento_update = Clock.schedule_interval(self.update, 1.0 / 60.0)
-            self.ejecutando = True
+        # Limpiar antes de empezar
+        for m in self.lista_meteoritos: self.remove_widget(m)
+        self.lista_meteoritos = []
+        self.puntaje = 0
+        self.astronauta.pos = (dp(50), self.height / 2)
+
+        # Iniciar cuenta regresiva en lugar de empezar directo
+        self.cuenta = 3
+        self.label_cuenta_visual.text = "PREPARADOS"  # Texto inicial
+        Clock.schedule_interval(self.cuenta_regresiva, 1)
+
+    def borrar_label(self, dt):
+        self.label_cuenta_visual.text = ""
+
+    def cuenta_regresiva(self, dt):
+        if self.cuenta > 0:
+            self.label_cuenta_visual.text = str(self.cuenta)
+            self.cuenta -= 1
+            return True
+        else:
+            self.label_cuenta_visual.text = "¡YA!"
+
+            # Iniciamos el juego real
+            self.iniciar_juego_real()
+
+            # Programamos borrar el texto "¡YA!" en medio segundo
+            Clock.schedule_once(self.borrar_label, 0.5)
+            return False
+
+    def limpiar_texto_y_empezar(self, dt):
+        self.label_cuenta_visual.text = ""  # Borramos el texto
+        self.iniciar_juego_real()  # Aquí activas tus meteoritos y gravedad
+
+    def iniciar_juego_real(self):
+        self.evento_meteoritos = Clock.schedule_interval(self.crear_meteorito, 1.5)
+        self.evento_update = Clock.schedule_interval(self.update, 1.0 / 60.0)
+        self.ejecutando = True
 
     def pausar(self):
         Clock.unschedule(self.evento_meteoritos)
@@ -97,17 +137,25 @@ class Juego(Widget):
 
     def game_over(self):
         self.pausar()
-        print(f"GAME OVER - Puntaje: {self.puntaje}")
-        # Limpiar meteoritos
-        for m in self.lista_meteoritos: self.remove_widget(m)
+        # En lugar de ir al menú, abrimos el popup de puntaje
+        p = GameOverPopup(juego=self, puntaje_final=self.puntaje)
+        p.open()
+
+
+    def reiniciar_juego(self):
+        # Limpiamos meteoritos antes de empezar
+        for m in self.lista_meteoritos:
+            self.remove_widget(m)
         self.lista_meteoritos = []
         self.puntaje = 0
         self.velocidad_juego = -3
-        App.get_running_app().root.current = 'menu'
+        self.comenzar()  # Llama a tu función que inicia los relojes
 
     def ir_al_menu(self):
-        self.game_over()  # Esto limpia meteoritos y resetea puntaje
-        App.get_running_app().root.current = 'menu'
+        self.pausar()  # Detenemos todo por seguridad
+        app = App.get_running_app()
+        if app.root:
+            app.root.current = 'menu'
 
 
 class MenuScreen(Screen):
@@ -134,4 +182,3 @@ class AstroApp(App):
 
 if __name__ == "__main__":
     AstroApp().run()
-
