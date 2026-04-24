@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Release AAB
 on: [push, pull_request]
 
 jobs:
@@ -24,20 +24,25 @@ jobs:
           
           pip3 install --user --upgrade buildozer "cython<3.0.0" virtualenv
 
-      # ESTE ES EL PASO NUEVO QUE ARREGLA EL ERROR
       - name: Install Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Buildozer
+      - name: Build with Buildozer (Release Mode)
+        # Aquí usamos los Secrets que configuraste en Settings
+        env:
+          P_KEY_ALIAS: ${{ secrets.P_KEY_ALIAS }}
+          P_KEYSTORE_PASSWORD: ${{ secrets.P_KEYSTORE_PASSWORD }}
+          P_KEY_PASSWORD: ${{ secrets.P_KEY_PASSWORD }}
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          yes | buildozer -v android debug
+          # Cambiamos 'debug' por 'release' para generar el .aab firmado
+          buildozer -v android release
 
-      - name: Upload APK
+      - name: Upload AAB (Google Play Bundle)
         uses: actions/upload-artifact@v4
         with:
-          name: AstroJump-Installer
-          path: bin/*.apk
+          name: AstroJump-Release-Bundle
+          path: bin/*.aab
