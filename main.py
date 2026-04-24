@@ -1,4 +1,7 @@
 from kivy.config import Config
+#Config.set('graphics', 'width', '360')
+#Config.set('graphics', 'height', '640')
+#Config.set('graphics', 'resizable', False)
 import random
 from kivy.metrics import dp  # <--- IMPORTANTE: Importa dp para que funcione arriba
 from kivy.app import App
@@ -59,13 +62,22 @@ class Juego(Widget):
         self.sonido_beep = SoundLoader.load('assets/sonido.mp3')
         self.lista_meteoritos = []
         self.ejecutando = False
+        self.evento_meteoritos = None
+        self.evento_update = None
 
     def comenzar(self):
+        # 1. DETENER RELOJES PREVIOS (Esto soluciona la caída rápida)
+        Clock.unschedule(self.evento_meteoritos)
+        Clock.unschedule(self.evento_update)
+
         # Limpiar antes de empezar
         for m in self.lista_meteoritos: self.remove_widget(m)
         self.lista_meteoritos = []
         self.puntaje = 0
+        self.velocidad_juego = -3
         self.astronauta.pos = (dp(50), self.height / 2)
+        self.astronauta.velocidad_y = 0
+        self.ejecutando = False  # Reiniciamos el estado
 
         # Iniciar cuenta regresiva en lugar de empezar directo
         self.cuenta = 3
@@ -95,9 +107,11 @@ class Juego(Widget):
         self.iniciar_juego_real()  # Aquí activas tus meteoritos y gravedad
 
     def iniciar_juego_real(self):
-        self.evento_meteoritos = Clock.schedule_interval(self.crear_meteorito, 1.5)
-        self.evento_update = Clock.schedule_interval(self.update, 1.0 / 60.0)
-        self.ejecutando = True
+        # Si ya está ejecutando, no creamos más relojes
+        if not self.ejecutando:
+            self.evento_meteoritos = Clock.schedule_interval(self.crear_meteorito, 1.5)
+            self.evento_update = Clock.schedule_interval(self.update, 1.0 / 60.0)
+            self.ejecutando = True
 
     def pausar(self):
         Clock.unschedule(self.evento_meteoritos)
@@ -115,19 +129,41 @@ class Juego(Widget):
 
     def update(self, dt):
         self.astronauta.mover()
+
+        # 1. Definimos los radios para una colisión circular justa
+        radio_nave = dp(18)
+        radio_meteorito = dp(25)
+        distancia_minima = radio_nave + radio_meteorito
+
         for m in self.lista_meteoritos[:]:
             m.mover()
-            if self.astronauta.collide_widget(m) or self.astronauta.y < 0:
+
+            # 2. CALCULAMOS LA DISTANCIA REAL (Esto reemplaza al collide_widget)
+            dx = self.astronauta.center_x - m.center_x
+            dy = self.astronauta.center_y - m.center_y
+            distancia_actual = (dx ** 2 + dy ** 2) ** 0.5
+
+            # 3. COMPROBAMOS EL CHOQUE
+            # Si la distancia es menor a la suma de radios O si toca el suelo
+            if distancia_actual < distancia_minima or self.astronauta.y < 0:
                 self.game_over()
+                break  # Detenemos el chequeo de este frame
+
+            # 4. PUNTAJE Y LIMPIEZA
             if m.right < 0:
                 self.remove_widget(m)
-                self.lista_meteoritos.remove(m)
+                if m in self.lista_meteoritos:
+                    self.lista_meteoritos.remove(m)
                 self.puntaje += 1
-                # Solo suena si la app tiene el sonido habilitado
-                if self.sonido_beep and App.get_running_app().sonido_habilitado:
-                    self.sonido_beep.play()
 
-                if self.puntaje % 5 == 0: self.velocidad_juego -= 0.5
+                try:
+                    if self.sonido_beep and App.get_running_app().sonido_habilitado:
+                        self.sonido_beep.play()
+                except Exception as e:
+                    print(f"Error de audio: {e}")  # Evita que la app se cierre si falla el sonido
+
+                if self.puntaje % 5 == 0:
+                    self.velocidad_juego -= 0.5
 
     def on_touch_down(self, touch):
         if self.ejecutando: self.astronauta.saltar()
@@ -138,6 +174,12 @@ class Juego(Widget):
         p = GameOverPopup(juego=self, puntaje_final=self.puntaje)
         p.open()
 
+    def reanudar(self):
+        # Solo activamos los relojes si no están corriendo
+        if not self.ejecutando:
+            self.evento_meteoritos = Clock.schedule_interval(self.crear_meteorito, 1.5)
+            self.evento_update = Clock.schedule_interval(self.update, 1.0 / 60.0)
+            self.ejecutando = True
 
     def reiniciar_juego(self):
         # Limpiamos meteoritos antes de empezar
@@ -179,3 +221,4 @@ class AstroApp(App):
 
 if __name__ == "__main__":
     AstroApp().run()
+

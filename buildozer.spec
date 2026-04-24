@@ -1,11 +1,16 @@
 [app]
 title = Astro Jump
 package.name = astrojump
-package.domain = org.test
+package.domain = org.juan.astrojump 
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,ttf,kv,mp3
 version = 0.1
 requirements = python3, hostpython3, kivy==2.3.0, pillow, sdl2_mixer, sdl2_ttf, android
+# Nombre del archivo de imagen para el icono
+icon.filename = %(source.dir)s/icon.png
+
+# (Opcional) Si quieres una imagen de carga mientras se abre la app
+presplash.filename = %(source.dir)s/assets/fondo_espacio.jpg
 
 
 orientation = portrait
@@ -21,6 +26,7 @@ android.ndk_api = 21
 android.accept_sdk_license = True
 android.skip_update = False
 android.permissions = INTERNET
+android.release_artifact = aab
 
 [buildozer]
 log_level = 2
