@@ -26,7 +26,7 @@ android.ndk_api = 21
 android.accept_sdk_license = True
 android.skip_update = False
 android.permissions = INTERNET
-android.release_artifact = aab
+android.release_artifact = apk
 
 [buildozer]
 log_level = 2
