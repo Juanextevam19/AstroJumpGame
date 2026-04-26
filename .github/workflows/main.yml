@@ -1,4 +1,4 @@
-name: Build Release AAB
+name: Build APK de Prueba
 on: [push, pull_request]
 
 jobs:
@@ -30,19 +30,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Buildozer (Release Mode)
-        # Aquí usamos los Secrets que configuraste en Settings
-        env:
-          P_KEY_ALIAS: ${{ secrets.P_KEY_ALIAS }}
-          P_KEYSTORE_PASSWORD: ${{ secrets.P_KEYSTORE_PASSWORD }}
-          P_KEY_PASSWORD: ${{ secrets.P_KEY_PASSWORD }}
+      - name: Build with Buildozer (Debug Mode)
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Cambiamos 'debug' por 'release' para generar el .aab firmado
-          buildozer -v android release
+          # Usamos 'debug' para que la APK se pueda instalar sin problemas de firma en tu móvil
+          buildozer -v android debug
 
-      - name: Upload AAB (Google Play Bundle)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AstroJump-Release-Bundle
+          name: AstroJump-Instalable
           path: bin/*.apk
+
